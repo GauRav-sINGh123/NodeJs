@@ -84,7 +84,7 @@ export const registerUser= asyncHandler(async (req, res) => {
 
 export const loginUser=asyncHandler(async(req,res)=>{
     const {email,username,password}=req.body;
-    if(!email || !username){
+    if(!(username || email)){
       throw new ApiError(400,"Email or username is required");
     }
     const user=await User.findOne({
@@ -127,5 +127,24 @@ export const loginUser=asyncHandler(async(req,res)=>{
 })
 
 export const logoutUser=asyncHandler(async(req,res)=>{
-  
+  User.findByIdAndUpdate(req.user._id,{
+    $set:{
+      refreshToken:undefined
+    },
+    
+  },
+  {
+    new:true
+  }
+)
+
+    const options={
+      httpOnly:true,
+      secure:true
+    }
+      return res
+      .status(200)
+      .clearCookie("accessToken",options)
+      .clearCookie("refreshToken",options)
+      .json(new ApiResponse(200,"User logged out successfully"));
 })
